@@ -1,5 +1,17 @@
 {
   "home_header_title": "The All-Purpose Discord Bot",
   "home_header_description": "A fully customizable and easy-to-use Discord bot for server administration and much more.",
-  "home_header_get_started": "Get Started"  
+  "home_header_get_started": "Get Started",
+  "home_features_title": "What Can Waypoint Do?",
+  "home_features_view_all": "View All",
+  "home_features_admin_title": "Administration",
+  "home_features_admin_description": "",
+  "home_features_fun_title": "Fun & Games",
+  "home_features_fun_description": "",
+  "home_features_music": "Music",
+  "home_features_music_description": "",
+  "home_features_weather_title": "Weather",
+  "home_features_weather_description": "",
+  "home_features_github_title": "Github Integration",
+  "home_features_github_description": ""
 }
