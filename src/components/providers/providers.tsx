@@ -1,5 +1,6 @@
 'use client'
 import { LanguageDictionary } from "@/localization";
+import { Session } from "next-auth";
 import { ThemeProvider } from "next-themes";
 import { LanguageDictionaryProvider } from "./language-dict-provider";
 
