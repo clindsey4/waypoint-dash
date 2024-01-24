@@ -1,5 +1,17 @@
 {
     "home_header_title": "",
     "home_header_description": "",
-    "home_header_get_started": ""
+    "home_header_get_started": "",
+    "home_features_title": "",
+    "home_features_view_all": "",
+    "home_features_admin_title": "",
+    "home_features_admin_description": "",
+    "home_features_fun_title": "",
+    "home_features_fun_description": "",
+    "home_features_music": "",
+    "home_features_music_description": "",
+    "home_features_weather_title": "",
+    "home_features_weather_description": "",
+    "home_features_github_title": "",
+    "home_features_github_description": ""
 }
