@@ -37,7 +37,9 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={`${inter.variable} ${materialSymbols.variable}`}>
       <body className="bg-background">
-        <Providers dictionary={langDict}>
+        <Providers
+          dictionary={langDict}
+        >
           <main className="max-w-[1920px] min-h-screen m-auto flex flex-col justify-start items-center px-5 py-6">
             {children}
           </main>
