@@ -1,5 +1,7 @@
 import { FilledButton } from "@/components/material/filled-button"
 import { Icon } from "@/components/material/icon"
+import getDatabase from "@/data"
+import { Databases } from "@/data/types"
 import { Locale, getDictionary } from "@/localization"
 
 export default async function Home(
@@ -11,6 +13,8 @@ export default async function Home(
     }
   }
 ) {
+  const botData = getDatabase(Databases.BOT_DATA)
+
   const locale = params.lang
   const langDict = await getDictionary(locale)
   return (
