@@ -21,7 +21,10 @@ export async function GET(
         })
 
         // the date when the access token expires
-        const expirationDate = new Date(new Date().getUTCMilliseconds() + response.expires_in)
+        const expires = new Date()
+        expires.setSeconds(expires.getSeconds() + response.expires_in) 
+
+        console.log(expires.toISOString())
         
         // store tokens in DB
         // set session_token as cookie
