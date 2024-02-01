@@ -17,7 +17,7 @@ export default function init(
         access_token TEXT NOT NULL,
         refresh_token TEXT NOT NULL,
         expires TEXT NOT NULL
-    )`)
+    )`).run()
 
     // create logs table
     // [PK][STR] message_id | [STR] user_id | [STR] server_id | [STR] command | [DATE] created | [INT] command_id

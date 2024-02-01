@@ -199,7 +199,7 @@ function deleteSessionSync(
  * @param id The ID of the session to delete.
  * @returns A promise that resolves when the session is deleted.
  */
-function deleteSession(
+export function deleteSession(
     id: string
 ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
