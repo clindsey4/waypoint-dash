@@ -1,4 +1,4 @@
-import { getSession, insertSession } from "@/data/botData";
+import { deleteSession, getSession, insertSession, updateSession } from "@/data/botData";
 import { Session } from "@/data/types";
 import OAuth from "discord-oauth2";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
@@ -6,12 +6,21 @@ import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adap
 
 const defaultCookieName = 'session'
 const defaultSessionRefreshThreshold = 24 * 60 * 60 * 1000 // in milliseconds, when a session has this much time left before expiration, it will be refreshed automatically
+const sessionCookieLifetime = 365 * 24 * 60 * 60 * 1000 // in milliseconds, how long a session cookie will last.
 
 export const oauth = new OAuth({
     clientId: process.env.DISCORD_CLIENT_ID || '',
     clientSecret: process.env.DISCORD_CLIENT_SECRET || '',
     redirectUri: process.env.DISCORD_OAUTH_REDIRECT_URL
 })
+
+export function getOauthExpirationDate(
+    lifetime: number // in seconds, how long an oauth token will last.
+): Date {
+    const expires = new Date() // generate the current date as a Date object.
+    expires.setSeconds(expires.getSeconds() + lifetime) // offset the date by the number of seconds that the session is valid for
+    return expires
+}
 
 /**
  * Gets a session from a session token.
@@ -34,7 +43,7 @@ export function getActiveSession(
             if (session === null) return resolve(null) // resolve with null if no session was found
 
             // check if sesison needs to be refreshed
-            if (refreshThreshold >= (session.expires.getTime() - new Date().getTime())) return resolve(refreshSession(cookies, session, cookieName))
+            if (refreshThreshold >= (session.expires.getTime() - new Date().getTime())) return resolve(refreshSession(session))
 
             resolve(session)
         } catch (error) {
@@ -44,14 +53,28 @@ export function getActiveSession(
 }
 
 export function refreshSession(
-    cookies: RequestCookies | ReadonlyRequestCookies,
     session: Session,
-
-    cookieName: string = defaultCookieName,
 ): Promise<Session> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
-            
+            // get the new token
+            const tokenData = await oauth.tokenRequest({
+                refreshToken: session.refreshToken,
+                grantType: 'refresh_token',
+                scope: ""
+            })
+
+            const updated: Session = {
+                id: session.id,
+                accessToken: tokenData.access_token,
+                refreshToken: tokenData.refresh_token,
+                expires: getOauthExpirationDate(tokenData.expires_in)
+            }
+
+            await updateSession(updated)
+
+            // update the session
+            resolve(updated)
         } catch (error) {
             reject(error)
         }
@@ -71,8 +94,7 @@ export async function saveToken(
     cookieName: string = defaultCookieName
 ): Promise<Session> {
     // calculate the expiration date
-    const expires = new Date() // generate the current date as a Date object.
-    expires.setSeconds(expires.getSeconds() + tokenData.expires_in) // offset the date by the number of seconds that the session is valid for
+    const expires = getOauthExpirationDate(tokenData.expires_in)
 
     const session = await insertSession({
         accessToken: tokenData.access_token,
@@ -82,7 +104,7 @@ export async function saveToken(
 
     // set the cookie
     cookies.set(cookieName, session.id, {
-        expires: expires,
+        expires: new Date(expires.getTime() + sessionCookieLifetime),
         sameSite: true
     });
 
