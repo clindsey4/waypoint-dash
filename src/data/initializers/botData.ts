@@ -8,7 +8,13 @@ export default function init(
 
     // create module_config table
     // [PK][INT] server_id | [PK][INT] module_id | [BOOL] module_enabled | [STR] module_config
-    // TODO
+    database.prepare(`CREATE TABLE IF NOT EXISTS module_config (
+        server_id INTEGER NOT NULL,
+        module_id INTEGER NOT NULL,
+        module_enabled INT2,
+        module_config TEXT NOT NULL,
+        PRIMARY KEY (server_id, module_id)
+    )`).run()
 
     // create session table
     // [PK][STR] id | [STR] access_token | [STR] refresh_token | [DATE] expires
