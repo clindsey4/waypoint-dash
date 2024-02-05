@@ -22,7 +22,7 @@ export default async function ServersPage(
 
     return (
         <article className="w-full h-fit flex flex-col gap-8 justify-start items-center">
-            <h1 className="mt-5 text-4xl font-extrabold text-center">Select a Server</h1>
+            <h1 className="mt-5 text-4xl font-extrabold text-center">{langDict.servers_title}</h1>
             <ul className="flex flex-wrap max-w-screen-lg w-full gap-5 justify-center">
                 {guilds?.map(guild => (
                     <GuildItem
