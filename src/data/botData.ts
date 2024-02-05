@@ -6,6 +6,12 @@ const db = getDatabase(Databases.BOT_DATA)
 
 // ------------- MODULE CONFIGURATIONS -------------
 
+/**
+ * Takes a ModuleConfigRecord and converts it to raw data acceptable by the database
+ * 
+ * @param moduleConfigRecord 
+ * @returns RawModuleConfigRecord
+ */
 function deconstructModuleConfigRecord(moduleConfigRecord: ModuleConfigRecord) {
     var server_id: number = moduleConfigRecord.serverId
     var module_id: number = moduleConfigRecord.moduleId
@@ -15,6 +21,12 @@ function deconstructModuleConfigRecord(moduleConfigRecord: ModuleConfigRecord) {
     return {server_id, module_id, enabled, module_config} as RawModuleConfigRecord
 }
 
+/**
+ * Takes raw ModuleConfig data and creates a ModuleConfig object
+ * 
+ * @param rawModuleConfig
+ * @returns ModuleConfig
+ */
 function buildModuleConfig(rawModuleConfig: RawModuleConfig) {
     var moduleConfig: any = JSON.parse(rawModuleConfig.module_config)
     var enabled: boolean = rawModuleConfig.enabled > 0? true: false
@@ -23,9 +35,9 @@ function buildModuleConfig(rawModuleConfig: RawModuleConfig) {
 }
 
 /**
- * Returns an Module Configuration JSON for the given server and module
+ * Returns an ModuleConfig object for the given server and module
  * 
- * @returns The configuration as a JSON object.
+ * @returns ModuleConfig | null.
  */
 function getModuleConfigSync(
     serverId: number,
@@ -43,9 +55,9 @@ function getModuleConfigSync(
 }
 
 /**
- * Returns an Module Configuration JSON for the given server and module
+ * Returns an ModuleConfig object for the given server and module
  * 
- * @returns The configuration as a JSON object.
+ * @returns ModuleConfig | null.
  */
 export function getModuleConfig(
     serverId: number,
@@ -61,12 +73,10 @@ export function getModuleConfig(
 }
 
 /**
- * Inserts a module_config into the database.
+ * Creates a new ModuleConfigRecord in the database
  * 
- * @param server_id the id of the server
- * @param module_id the id of the module
- * @param module_config a JSON object to be inserted in to the database
- * @returns true on success.
+ * @param moduleConfigRecord 
+ * @returns true on success
  */
 function createModuleConfigRecordSync(
     moduleConfigRecord: ModuleConfigRecord
@@ -90,12 +100,10 @@ function createModuleConfigRecordSync(
 }
 
 /**
- * Inserts a module_config into the database.
+ * Creates a new ModuleConfigRecord in the database
  * 
- * @param server_id the id of the server
- * @param module_id the id of the module
- * @param module_config a JSON object to be inserted in to the database
- * @returns true on success.
+ * @param moduleConfigRecord 
+ * @returns true on success
  */
 export function createModuleConfigRecord(
     moduleConfigRecord: ModuleConfigRecord
