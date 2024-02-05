@@ -1,30 +1,25 @@
 import getDatabase from ".";
 import { randomBytes } from "crypto";
-import { DatabaseSession, Databases, Session } from "./types";
+import { DatabaseSession, Databases, ModuleConfig, ModuleConfigRecord, RawModuleConfig, RawModuleConfigRecord, Session } from "./types";
 
 const db = getDatabase(Databases.BOT_DATA)
 
 // ------------- MODULE CONFIGURATIONS -------------
 
-/**
- * Returns an Module Configuration JSON for the given server and module
- * 
- * @returns The configuration as a JSON object.
- */
-function getModuleConfigurationSync(
-    server_id: number,
-    module_id: number
-) {
-    const results = db.prepare(`
-    SELECT module_config
-    FROM module_config
-    WHERE server_id = ?
-    AND module_id = ?
-    AND module_enabled = 1`).get(server_id, module_id) as string | undefined
+function deconstructModuleConfigRecord(moduleConfigRecord: ModuleConfigRecord) {
+    var server_id: number = moduleConfigRecord.serverId
+    var module_id: number = moduleConfigRecord.moduleId
+    var enabled: number = moduleConfigRecord.enabled? 1 : 0
+    var module_config: string = JSON.stringify(moduleConfigRecord.moduleConfig)
 
-    if (results === undefined) return null
+    return {server_id, module_id, enabled, module_config} as RawModuleConfigRecord
+}
 
-    return JSON.parse(results)
+function buildModuleConfig(rawModuleConfig: RawModuleConfig) {
+    var moduleConfig: any = JSON.parse(rawModuleConfig.module_config)
+    var enabled: boolean = rawModuleConfig.enabled > 0? true: false
+
+    return {moduleConfig, enabled} as ModuleConfig
 }
 
 /**
@@ -32,13 +27,33 @@ function getModuleConfigurationSync(
  * 
  * @returns The configuration as a JSON object.
  */
-export function getModuleConfiguration(
-    server_id: number,
-    module_id: number
-): Promise<any | null> {
-    return new Promise<any | null>((resolve, reject) => {
+function getModuleConfigSync(
+    serverId: number,
+    moduleId: number
+) {
+    const rawData = db.prepare(`
+    SELECT module_config, enabled
+    FROM module_config
+    WHERE server_id = ?
+    AND module_id = ?`).get(serverId, moduleId) as RawModuleConfig | undefined
+
+    if (rawData === undefined) return null
+
+    return buildModuleConfig(rawData)
+}
+
+/**
+ * Returns an Module Configuration JSON for the given server and module
+ * 
+ * @returns The configuration as a JSON object.
+ */
+export function getModuleConfig(
+    serverId: number,
+    moduleId: number
+): Promise<ModuleConfig | null> {
+    return new Promise<ModuleConfig | null>((resolve, reject) => {
         try {
-            resolve(getModuleConfigurationSync(server_id, module_id))
+            resolve(getModuleConfigSync(serverId, moduleId))
         } catch (error) {
             reject(error)   
         }
@@ -53,19 +68,19 @@ export function getModuleConfiguration(
  * @param module_config a JSON object to be inserted in to the database
  * @returns true on success.
  */
-function insertModuleConfigurationSync(
-    server_id: number,
-    module_id: number,
-    module_config: any
+function createModuleConfigRecordSync(
+    moduleConfigRecord: ModuleConfigRecord
 ): boolean {
+    var rawData: RawModuleConfigRecord = deconstructModuleConfigRecord(moduleConfigRecord)
     try {
         db.prepare(`
-        INSERT INTO module_config (server_id, module_id, module_config)
-        VALUES (?, ?, ?)
+        INSERT INTO module_config (server_id, module_id, module_config, enabled)
+        VALUES (?, ?, ?, ?)
         `).run(
-            server_id,
-            module_id,
-            JSON.stringify(module_config)
+            rawData.server_id,
+            rawData.module_id,
+            rawData.module_config,
+            rawData.enabled
         )
     }
     catch {
@@ -82,14 +97,12 @@ function insertModuleConfigurationSync(
  * @param module_config a JSON object to be inserted in to the database
  * @returns true on success.
  */
-export function insertModuleConfiguration(
-    server_id: number,
-    module_id: number,
-    module_config: any
+export function createModuleConfigRecord(
+    moduleConfigRecord: ModuleConfigRecord
 ): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
         try {
-            resolve(insertModuleConfigurationSync(server_id, module_id, module_config))
+            resolve(createModuleConfigRecordSync(moduleConfigRecord))
         } catch (error) {
             reject(error)
         }

@@ -11,8 +11,8 @@ export default function init(
     database.prepare(`CREATE TABLE IF NOT EXISTS module_config (
         server_id INTEGER NOT NULL,
         module_id INTEGER NOT NULL,
-        module_enabled INT2 CHECK(module_enabled IN (0,1)) NOT NULL DEFAULT 1,
         module_config TEXT NOT NULL,
+        enabled INT2 CHECK(module_enabled IN (0,1)) NOT NULL DEFAULT 1,
         PRIMARY KEY (server_id, module_id)
     )`).run()
 
