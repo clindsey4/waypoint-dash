@@ -4,6 +4,98 @@ import { DatabaseSession, Databases, Session } from "./types";
 
 const db = getDatabase(Databases.BOT_DATA)
 
+// ------------- MODULE CONFIGURATIONS -------------
+
+/**
+ * Returns an Module Configuration JSON for the given server and module
+ * 
+ * @returns The configuration as a JSON object.
+ */
+function getModuleConfigurationSync(
+    server_id: number,
+    module_id: number
+) {
+    const results = db.prepare(`
+    SELECT module_config
+    FROM module_config
+    WHERE server_id = ?
+    AND module_id = ?
+    AND module_enabled = 1`).get(server_id, module_id) as string | undefined
+
+    if (results === undefined) return null
+
+    return JSON.parse(results)
+}
+
+/**
+ * Returns an Module Configuration JSON for the given server and module
+ * 
+ * @returns The configuration as a JSON object.
+ */
+export function getModuleConfiguration(
+    server_id: number,
+    module_id: number
+): Promise<any | null> {
+    return new Promise<any | null>((resolve, reject) => {
+        try {
+            resolve(getModuleConfigurationSync(server_id, module_id))
+        } catch (error) {
+            reject(error)   
+        }
+    })
+}
+
+/**
+ * Inserts a module_config into the database.
+ * 
+ * @param server_id the id of the server
+ * @param module_id the id of the module
+ * @param module_config a JSON object to be inserted in to the database
+ * @returns true on success.
+ */
+function insertModuleConfigurationSync(
+    server_id: number,
+    module_id: number,
+    module_config: any
+): boolean {
+    try {
+        db.prepare(`
+        INSERT INTO module_config (server_id, module_id, module_config)
+        VALUES (?, ?, ?)
+        `).run(
+            server_id,
+            module_id,
+            JSON.stringify(module_config)
+        )
+    }
+    catch {
+        return false
+    }
+    return true
+}
+
+/**
+ * Inserts a module_config into the database.
+ * 
+ * @param server_id the id of the server
+ * @param module_id the id of the module
+ * @param module_config a JSON object to be inserted in to the database
+ * @returns true on success.
+ */
+export function insertModuleConfiguration(
+    server_id: number,
+    module_id: number,
+    module_config: any
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(insertModuleConfigurationSync(server_id, module_id, module_config))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
 // ------------- SESSIONS -------------
 
 /**
