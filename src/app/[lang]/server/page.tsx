@@ -26,7 +26,7 @@ export default async function ServersPage(
     const langDict = await getDictionary(locale)
 
     return (
-        <article className="w-fhull h-fit flex flex-col gap-8 justify-start items-center">
+        <article className="w-full h-fit flex flex-col gap-8 justify-start items-center">
             <h1 className="mt-5 text-4xl font-extrabold text-center">{langDict.servers_title}</h1>
             <ul className="flex flex-wrap max-w-screen-lg w-full gap-5 justify-center">
                 {guilds.length > 0 ? guilds?.map(guild => (
