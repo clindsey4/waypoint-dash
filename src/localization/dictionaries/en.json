@@ -14,5 +14,6 @@
   "home_features_weather_description": "",
   "home_features_github_title": "Github Integration",
   "home_features_github_description": "",
-  "servers_title": "Select a Server"
+  "servers_title": "Select a Server",
+  "servers_no_guilds": "You do not have administrative permissions in any server."
 }
