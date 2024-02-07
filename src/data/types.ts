@@ -11,26 +11,17 @@ export enum Pragma {
 export interface RawModuleConfigRecord {
     server_id: number,
     module_id: number,
-    enabled: number,
-    module_config: string
+    module_config: string,
+    enabled: number
 }
 
 export interface ModuleConfigRecord {
     serverId: number,
     moduleId: number,
-    enabled: boolean,
-    moduleConfig: any
-}
-
-export interface RawModuleConfig {
-    module_config: string,
-    enabled: number
-}
-
-export interface ModuleConfig {
     moduleConfig: any,
     enabled: boolean
 }
+
 
 // session types
 export interface Session {

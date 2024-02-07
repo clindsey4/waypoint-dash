@@ -1,7 +1,51 @@
-import { deleteSession, getSession, insertSession, updateSession } from "@/data/botData";
+import { createModuleConfigRecord, deleteModuleConfigRecord, deleteSession, getModuleConfigRecord, getSession, insertSession, updateModuleConfigRecord, updateSession } from "@/data/botData";
 import { describe } from "node:test";
 
 describe('Database', () => {
+    // module_config
+    test('can create module_config record', async () => {
+        return createModuleConfigRecord({
+            serverId: 1,
+            moduleId: 1,
+            moduleConfig: "{}",
+            enabled: true
+        })
+        .then(response => expect(response).toEqual(true))
+    })
+
+    test('can update a module_config record', async () => {
+        await createModuleConfigRecord({
+            serverId: 1,
+            moduleId: 1,
+            moduleConfig: "{}",
+            enabled: true
+        })
+
+        await updateModuleConfigRecord({
+            serverId: 1, 
+            moduleId: 1, 
+            moduleConfig: "{}", 
+            enabled: false
+        })
+
+        return await getModuleConfigRecord(1, 1)
+        .then(record => record?.enabled)
+        .then(enabled => expect(enabled).toEqual(false))
+    })
+
+    test('can delete a module_config record', async () => {
+        await createModuleConfigRecord({
+            serverId: 1,
+            moduleId: 1,
+            moduleConfig: "{}",
+            enabled: true
+        })
+
+        await deleteModuleConfigRecord(1, 1)
+
+        return await getModuleConfigRecord(1, 1)
+        .then(response => expect(response).toEqual(false))
+    })
 
     // sessions
     test('can insert a session', () => {

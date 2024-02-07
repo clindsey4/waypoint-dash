@@ -1,6 +1,6 @@
 import getDatabase from ".";
 import { randomBytes } from "crypto";
-import { DatabaseSession, Databases, ModuleConfig, ModuleConfigRecord, RawModuleConfig, RawModuleConfigRecord, Session } from "./types";
+import { DatabaseSession, Databases, ModuleConfigRecord, RawModuleConfigRecord, Session } from "./types";
 
 const db = getDatabase(Databases.BOT_DATA)
 
@@ -12,60 +12,106 @@ const db = getDatabase(Databases.BOT_DATA)
  * @param moduleConfigRecord 
  * @returns RawModuleConfigRecord
  */
-function deconstructModuleConfigRecord(moduleConfigRecord: ModuleConfigRecord) {
-    var server_id: number = moduleConfigRecord.serverId
-    var module_id: number = moduleConfigRecord.moduleId
-    var enabled: number = moduleConfigRecord.enabled? 1 : 0
-    var module_config: string = JSON.stringify(moduleConfigRecord.moduleConfig)
-
-    return {server_id, module_id, enabled, module_config} as RawModuleConfigRecord
+function deconstructModuleConfigRecord(moduleConfigRecord: ModuleConfigRecord): RawModuleConfigRecord {
+    return {
+        server_id: moduleConfigRecord.serverId, 
+        module_id: moduleConfigRecord.moduleId, 
+        module_config: JSON.stringify(moduleConfigRecord.moduleConfig), 
+        enabled: moduleConfigRecord.enabled? 1 : 0
+    } as RawModuleConfigRecord
 }
 
 /**
- * Takes raw ModuleConfig data and creates a ModuleConfig object
+ * Takes a RawModuleConfigRecord and converts it to usable data
  * 
- * @param rawModuleConfig
- * @returns ModuleConfig
+ * @param rawModuleConfigRecord 
+ * @returns ModuleConfigRecord
  */
-function buildModuleConfig(rawModuleConfig: RawModuleConfig) {
-    var moduleConfig: any = JSON.parse(rawModuleConfig.module_config)
-    var enabled: boolean = rawModuleConfig.enabled > 0? true: false
-
-    return {moduleConfig, enabled} as ModuleConfig
+function buildModuleConfigRecord(rawModuleConfigRecord: RawModuleConfigRecord): ModuleConfigRecord {
+    return {
+        serverId: rawModuleConfigRecord.server_id, 
+        moduleId: rawModuleConfigRecord.module_id, 
+        moduleConfig: JSON.parse(rawModuleConfigRecord.module_config), 
+        enabled: (rawModuleConfigRecord.enabled > 0)? true : false
+    } as ModuleConfigRecord
 }
 
 /**
- * Returns an ModuleConfig object for the given server and module
+ * Returns a ModuleConfigRecord object for the given server and module
  * 
- * @returns ModuleConfig | null.
+ * @param serverId
+ * @param moduleId
+ * @returns ModuleConfigRecord | null.
  */
-function getModuleConfigSync(
+function getModuleConfigRecordSync(
     serverId: number,
     moduleId: number
-) {
+): ModuleConfigRecord | null {
     const rawData = db.prepare(`
-    SELECT module_config, enabled
+    SELECT server_id, module_id, module_config, enabled
     FROM module_config
     WHERE server_id = ?
-    AND module_id = ?`).get(serverId, moduleId) as RawModuleConfig | undefined
+    AND module_id = ?`).get(serverId, moduleId) as RawModuleConfigRecord | undefined
 
     if (rawData === undefined) return null
 
-    return buildModuleConfig(rawData)
+    return buildModuleConfigRecord(rawData)
 }
 
 /**
- * Returns an ModuleConfig object for the given server and module
+ * Returns a ModuleConfigRecord object for the given server and module
  * 
- * @returns ModuleConfig | null.
+ * @param serverId
+ * @param moduleId
+ * @returns ModuleConfigRecord | null.
  */
-export function getModuleConfig(
+export function getModuleConfigRecord(
     serverId: number,
     moduleId: number
-): Promise<ModuleConfig | null> {
-    return new Promise<ModuleConfig | null>((resolve, reject) => {
+): Promise<ModuleConfigRecord | null> {
+    return new Promise<ModuleConfigRecord | null>((resolve, reject) => {
         try {
-            resolve(getModuleConfigSync(serverId, moduleId))
+            resolve(getModuleConfigRecordSync(serverId, moduleId))
+        } catch (error) {
+            reject(error)   
+        }
+    })
+}
+
+/**
+ * Returns All ModuleConfigRecords for a given serverId
+ * 
+ * @param serverId
+ * @param enabled
+ * @returns ModuleConfigRecord[]
+ */
+function getAllModuleConfigRecordsSync(
+    serverId: number,
+    enabled: boolean | null
+): ModuleConfigRecord[] | null {
+    const rawData = db.prepare(`
+    SELECT server_id, module_id, module_config, enabled
+    FROM module_config
+    WHERE server_id = ?
+    ${enabled == null? '' : 'AND enabled = ?'}`).all(serverId, enabled) as RawModuleConfigRecord[]
+
+    return rawData.map(record => buildModuleConfigRecord(record))
+}
+
+/**
+ * Returns All ModuleConfigRecords for a given serverId
+ * 
+ * @param serverId
+ * @param enabled
+ * @returns ModuleConfigRecord[]
+ */
+export function getAllModuleConfigRecords(
+    serverId: number,
+    enabled: boolean | null
+): Promise<ModuleConfigRecord[] | null> {
+    return new Promise<ModuleConfigRecord[] | null>((resolve, reject) => {
+        try {
+            resolve(getAllModuleConfigRecordsSync(serverId, enabled))
         } catch (error) {
             reject(error)   
         }
@@ -82,20 +128,17 @@ function createModuleConfigRecordSync(
     moduleConfigRecord: ModuleConfigRecord
 ): boolean {
     var rawData: RawModuleConfigRecord = deconstructModuleConfigRecord(moduleConfigRecord)
-    try {
-        db.prepare(`
-        INSERT INTO module_config (server_id, module_id, module_config, enabled)
-        VALUES (?, ?, ?, ?)
-        `).run(
-            rawData.server_id,
-            rawData.module_id,
-            rawData.module_config,
-            rawData.enabled
-        )
-    }
-    catch {
-        return false
-    }
+
+    db.prepare(`
+    INSERT INTO module_config (server_id, module_id, module_config, enabled)
+    VALUES (?, ?, ?, ?)
+    `).run(
+        rawData.server_id,
+        rawData.module_id,
+        rawData.module_config,
+        rawData.enabled
+    )
+    
     return true
 }
 
@@ -112,10 +155,102 @@ export function createModuleConfigRecord(
         try {
             resolve(createModuleConfigRecordSync(moduleConfigRecord))
         } catch (error) {
-            reject(error)
+            return false
         }
     })
 }
+
+/**
+ * Updates a ModuleConfigRecord in the database
+ * 
+ * @param moduleConfigRecord 
+ * @returns true on success
+ */
+export function updateModuleConfigRecordSync(
+    moduleConfigRecord: Partial<ModuleConfigRecord> & Pick<ModuleConfigRecord, 'serverId'> & Pick<ModuleConfigRecord, 'moduleId'>
+): boolean {
+    let parameters: string[] = []
+    let values: any[] = []
+
+    if (moduleConfigRecord.moduleConfig !== undefined) {
+        parameters.push(`module_config = ?`)
+        const module_config: string = JSON.stringify(moduleConfigRecord.moduleConfig)
+        values.push(module_config)
+    }
+
+    if (moduleConfigRecord.enabled !== undefined) {
+        parameters.push(`enabled = ?`)
+        const enabled: number = moduleConfigRecord.enabled? 1 : 0
+        values.push(enabled)
+    }
+
+    if (parameters.length > 0) {
+        db.prepare(`
+            UPDATE module_config
+            SET ${parameters.join(', ')}
+            WHERE server_id = ? 
+            AND module_id = ?
+            `).run([...values, moduleConfigRecord.serverId, moduleConfigRecord.moduleId])
+        return true
+    }
+    return false
+}
+
+/**
+ * Updates a ModuleConfigRecord in the database
+ * 
+ * @param moduleConfigRecord 
+ * @returns true on success
+ */
+export function updateModuleConfigRecord(
+    moduleConfigRecord: ModuleConfigRecord
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(updateModuleConfigRecordSync(moduleConfigRecord))
+        } catch (error) {
+            return false
+        }
+    })
+}
+
+/**
+ * Updates a ModuleConfigRecord in the database
+ * 
+ * @param moduleConfigRecord 
+ * @returns true on success
+ */
+export function deleteModuleConfigRecordSync(
+    serverId: number,
+    moduleId: number
+): boolean {
+    db.prepare(`
+                DELETE FROM module_config
+                WHERE server_id = ? 
+                AND module_id = ?
+                `).run(serverId, moduleId)
+    return true
+}
+
+/**
+ * Updates a ModuleConfigRecord in the database
+ * 
+ * @param moduleConfigRecord 
+ * @returns true on success
+ */
+export function deleteModuleConfigRecord(
+    serverId: number,
+    moduleId: number
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(deleteModuleConfigRecordSync(serverId, moduleId))
+        } catch (error) {
+            return false
+        }
+    })
+}
+
 
 // ------------- SESSIONS -------------
 
