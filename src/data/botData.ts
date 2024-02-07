@@ -155,7 +155,7 @@ export function createModuleConfigRecord(
         try {
             resolve(createModuleConfigRecordSync(moduleConfigRecord))
         } catch (error) {
-            return false
+            resolve(false)
         }
     })
 }
@@ -209,13 +209,13 @@ export function updateModuleConfigRecord(
         try {
             resolve(updateModuleConfigRecordSync(moduleConfigRecord))
         } catch (error) {
-            return false
+            resolve(false)
         }
     })
 }
 
 /**
- * Updates a ModuleConfigRecord in the database
+ * Deletes a ModuleConfigRecord in the database
  * 
  * @param moduleConfigRecord 
  * @returns true on success
@@ -233,7 +233,7 @@ export function deleteModuleConfigRecordSync(
 }
 
 /**
- * Updates a ModuleConfigRecord in the database
+ * Deletes a ModuleConfigRecord in the database
  * 
  * @param moduleConfigRecord 
  * @returns true on success
@@ -246,7 +246,7 @@ export function deleteModuleConfigRecord(
         try {
             resolve(deleteModuleConfigRecordSync(serverId, moduleId))
         } catch (error) {
-            return false
+            resolve(false)
         }
     })
 }

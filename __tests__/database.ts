@@ -21,15 +21,18 @@ describe('Database', () => {
             enabled: true
         })
 
-        await updateModuleConfigRecord({
+        const success = await updateModuleConfigRecord({
             serverId: 1, 
             moduleId: 1, 
             moduleConfig: "{}", 
             enabled: false
         })
+        
+        if (!success)
+            return false
 
-        return await getModuleConfigRecord(1, 1)
-        .then(record => record?.enabled)
+        return getModuleConfigRecord(1, 1)
+        .then(response => response?.enabled)
         .then(enabled => expect(enabled).toEqual(false))
     })
 
@@ -41,10 +44,8 @@ describe('Database', () => {
             enabled: true
         })
 
-        await deleteModuleConfigRecord(1, 1)
-
-        return await getModuleConfigRecord(1, 1)
-        .then(response => expect(response).toEqual(false))
+        return deleteModuleConfigRecord(1, 1)
+        .then(response => expect(response).toEqual(true))
     })
 
     // sessions
