@@ -540,8 +540,8 @@ export function getLog(
  * @returns Log[] | null
  */
 function getLogsByDateSync(
-    startDate: Date,
-    endDate: Date
+    startDate?: Date,
+    endDate?: Date
 ): Log[] | null {
     let parameters: string[] = []
     let values: string[] = []
@@ -576,8 +576,8 @@ function getLogsByDateSync(
  * @returns Log[] | null
  */
 export function getLogsByDate(
-    startDate: Date,
-    endDate: Date
+    startDate?: Date,
+    endDate?: Date
 ): Promise<Log[] | null> {
     return new Promise<Log[] | null>((resolve, reject) => {
         try {
