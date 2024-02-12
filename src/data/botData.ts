@@ -1,6 +1,6 @@
 import getDatabase from ".";
 import { randomBytes } from "crypto";
-import { DatabaseSession, Databases, ModuleConfigRecord, RawModuleConfigRecord, Session } from "./types";
+import { Session, DatabaseSession, Databases, ModuleConfigRecord, RawModuleConfigRecord, Log, RawLog } from "./types";
 
 const db = getDatabase(Databases.BOT_DATA)
 
@@ -455,6 +455,80 @@ export function deleteSession(
             resolve(deleteSessionSync(id))
         } catch (error) {
             reject(error)
+        }
+    })
+}
+
+// ------------- LOGS -------------
+
+/**
+ * Takes a ModuleConfigRecord and converts it to raw data acceptable by the database
+ * 
+ * @param moduleConfigRecord 
+ * @returns RawModuleConfigRecord
+ */
+function deconstructLog(log: Log): RawLog {
+    return {
+        message_id: log.messageId,
+        user_id: log.userId,
+        server_id: log.serverId,
+        command: log.command,
+        date_created: log.dateCreated.toISOString()
+    } as RawLog
+}
+
+/**
+ * Takes a RawModuleConfigRecord and converts it to usable data
+ * 
+ * @param rawModuleConfigRecord 
+ * @returns ModuleConfigRecord
+ */
+function buildLog(rawLog: RawLog): Log {
+    let dateCreated: Date = new Date(rawLog.date_created)
+    return {
+        messageId: rawLog.message_id,
+        userId: rawLog.user_id,
+        serverId: rawLog.server_id,
+        command: rawLog.command,
+        dateCreated: dateCreated
+    } as Log
+}
+
+/**
+ * Returns a ModuleConfigRecord object for the given server and module
+ * 
+ * @param serverId
+ * @param moduleId
+ * @returns ModuleConfigRecord | null.
+ */
+function getLogSync(
+    messageId: string
+): Log | null {
+    const rawData = db.prepare(`
+    SELECT message_id, user_id, server_id, command, date_created
+    FROM logs
+    WHERE message_id = ?`).get(messageId) as RawLog | undefined
+
+    if (rawData === undefined) return null
+
+    return buildLog(rawData)
+}
+
+/**
+ * Returns a ModuleConfigRecord object for the given server and module
+ * 
+ * @param serverId
+ * @param moduleId
+ * @returns ModuleConfigRecord | null.
+ */
+export function getLog(
+    messageId: string
+): Promise<Log | null> {
+    return new Promise<Log | null>((resolve, reject) => {
+        try {
+            resolve(getLogSync(messageId))
+        } catch (error) {
+            reject(error)   
         }
     })
 }
