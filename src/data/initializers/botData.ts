@@ -31,7 +31,8 @@ export default function init(
         message_id TEXT PRIMARY KEY NOT NULL,
         user_id TEXT NOT NULL,
         server_id TEXT NOT NULL,
-        command INTEGER NOT NULL,
+        command TEXT NOT NULL,
+        command_id INTEGER NOT NULL,
         date_created TEXT NOT NULL
     )`).run()
 }

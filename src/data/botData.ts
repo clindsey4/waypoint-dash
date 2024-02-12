@@ -166,7 +166,7 @@ export function createModuleConfigRecord(
  * @param moduleConfigRecord 
  * @returns true on success
  */
-export function updateModuleConfigRecordSync(
+function updateModuleConfigRecordSync(
     moduleConfigRecord: Partial<ModuleConfigRecord> & Pick<ModuleConfigRecord, 'serverId'> & Pick<ModuleConfigRecord, 'moduleId'>
 ): boolean {
     let parameters: string[] = []
@@ -220,7 +220,7 @@ export function updateModuleConfigRecord(
  * @param moduleConfigRecord 
  * @returns true on success
  */
-export function deleteModuleConfigRecordSync(
+function deleteModuleConfigRecordSync(
     serverId: number,
     moduleId: number
 ): boolean {
@@ -462,10 +462,10 @@ export function deleteSession(
 // ------------- LOGS -------------
 
 /**
- * Takes a ModuleConfigRecord and converts it to raw data acceptable by the database
+ * Takes a Log and converts it to raw data acceptable by the database
  * 
- * @param moduleConfigRecord 
- * @returns RawModuleConfigRecord
+ * @param log 
+ * @returns RawLog
  */
 function deconstructLog(log: Log): RawLog {
     return {
@@ -473,15 +473,16 @@ function deconstructLog(log: Log): RawLog {
         user_id: log.userId,
         server_id: log.serverId,
         command: log.command,
+        command_id: log.command_id,
         date_created: log.dateCreated.toISOString()
     } as RawLog
 }
 
 /**
- * Takes a RawModuleConfigRecord and converts it to usable data
+ * Takes a RawLog and converts it to usable data
  * 
- * @param rawModuleConfigRecord 
- * @returns ModuleConfigRecord
+ * @param rawLog 
+ * @returns Log
  */
 function buildLog(rawLog: RawLog): Log {
     let dateCreated: Date = new Date(rawLog.date_created)
@@ -490,22 +491,22 @@ function buildLog(rawLog: RawLog): Log {
         userId: rawLog.user_id,
         serverId: rawLog.server_id,
         command: rawLog.command,
+        command_id: rawLog.command_id,
         dateCreated: dateCreated
     } as Log
 }
 
 /**
- * Returns a ModuleConfigRecord object for the given server and module
+ * Returns a Log object for the given server and module
  * 
- * @param serverId
- * @param moduleId
- * @returns ModuleConfigRecord | null.
+ * @param messageId
+ * @returns Log | null.
  */
 function getLogSync(
     messageId: string
 ): Log | null {
     const rawData = db.prepare(`
-    SELECT message_id, user_id, server_id, command, date_created
+    SELECT message_id, user_id, server_id, command, command_id, date_created
     FROM logs
     WHERE message_id = ?`).get(messageId) as RawLog | undefined
 
@@ -515,11 +516,10 @@ function getLogSync(
 }
 
 /**
- * Returns a ModuleConfigRecord object for the given server and module
+ * Returns a Log object for the given server and module
  * 
- * @param serverId
- * @param moduleId
- * @returns ModuleConfigRecord | null.
+ * @param messageId
+ * @returns Log | null.
  */
 export function getLog(
     messageId: string
@@ -529,6 +529,141 @@ export function getLog(
             resolve(getLogSync(messageId))
         } catch (error) {
             reject(error)   
+        }
+    })
+}
+
+/**
+ * Returns All Logs for a given date range
+ * 
+ * @param startDate
+ * @param endDate
+ * @returns Log[] | null
+ */
+function getLogsByDateSync(
+    startDate: Date,
+    endDate: Date
+): Log[] | null {
+    let parameters: string[] = []
+    let values: string[] = []
+    if (startDate !== undefined)
+    {
+        parameters.push(`date_created >= ?`)
+        values.push(startDate.toISOString())
+    }
+    if (endDate !== undefined)
+    {
+        parameters.push(`date_created <= ?`)
+        values.push(endDate.toISOString())
+    }
+    if (parameters.length == 0)
+        return null
+    const rawData = db.prepare(`
+    SELECT message_id, user_id, server_id, command, command_id, date_created
+    FROM logs
+    WHERE ${parameters.join(" AND ")}`).all([...values]) as RawLog[] | undefined
+
+    if (rawData === undefined)
+        return null
+
+    return rawData.map(rawLog => buildLog(rawLog))
+}
+
+/**
+ * Returns All Logs for a given date range
+ * 
+ * @param startDate
+ * @param endDate
+ * @returns Log[] | null
+ */
+export function getLogsByDate(
+    startDate: Date,
+    endDate: Date
+): Promise<Log[] | null> {
+    return new Promise<Log[] | null>((resolve, reject) => {
+        try {
+            resolve(getLogsByDateSync(startDate, endDate))
+        } catch (error) {
+            reject(error)   
+        }
+    })
+}
+
+/**
+ * Creates a new Log in the database
+ * 
+ * @param moduleConfigRecord 
+ * @returns true on success
+ */
+function createLogSync(
+    log: Log
+): boolean {
+    var rawData: RawLog = deconstructLog(log)
+
+    db.prepare(`
+    INSERT INTO logs (message_id, user_id, server_id, command, command_id, date_created)
+    VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+        rawData.message_id,
+        rawData.user_id,
+        rawData.server_id,
+        rawData.command,
+        rawData.command_id,
+        rawData.date_created
+    )
+    
+    return true
+}
+
+/**
+ * Creates a new Log in the database
+ * 
+ * @param moduleConfigRecord 
+ * @returns true on success
+ */
+export function createLog(
+    log: Log
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(createLogSync(log))
+        } catch (error) {
+            resolve(false)
+        }
+    })
+}
+
+/**
+ * Deletes a Log in the database
+ * 
+ * @param messageId 
+ * @returns true on success
+ */
+function deleteLogSync(
+    messageId: string
+): boolean {
+    db.prepare(`
+        DELETE FROM logs
+        WHERE message_id = ?
+    `).run(messageId)
+    
+    return true
+}
+
+/**
+ * Deletes a Log in the database
+ * 
+ * @param messageId 
+ * @returns true on success
+ */
+export function deleteLog(
+    messageId: string
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(deleteLogSync(messageId))
+        } catch (error) {
+            resolve(false)
         }
     })
 }
