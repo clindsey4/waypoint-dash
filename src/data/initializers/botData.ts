@@ -7,9 +7,9 @@ export default function init(
     if (exists) { return }
 
     // create module_config table
-    // [PK][INT] server_id | [PK][INT] module_id | [STR] module_config | [BOOL] enabled
+    // [PK][STR] server_id | [PK][INT] module_id | [STR] module_config | [BOOL] enabled
     database.prepare(`CREATE TABLE IF NOT EXISTS module_config (
-        server_id INTEGER NOT NULL,
+        server_id TEXT NOT NULL,
         module_id INTEGER NOT NULL,
         module_config TEXT NOT NULL,
         enabled INT2 CHECK(enabled IN (0,1)) NOT NULL DEFAULT 1,
