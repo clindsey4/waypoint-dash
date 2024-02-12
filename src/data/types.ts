@@ -9,14 +9,14 @@ export enum Pragma {
 
 // module_config types
 export interface RawModuleConfigRecord {
-    server_id: number,
+    server_id: string,
     module_id: number,
     module_config: string,
     enabled: number
 }
 
 export interface ModuleConfigRecord {
-    serverId: number,
+    serverId: string,
     moduleId: number,
     moduleConfig: any,
     enabled: boolean

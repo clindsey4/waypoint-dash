@@ -44,7 +44,7 @@ function buildModuleConfigRecord(rawModuleConfigRecord: RawModuleConfigRecord): 
  * @returns ModuleConfigRecord | null.
  */
 function getModuleConfigRecordSync(
-    serverId: number,
+    serverId: string,
     moduleId: number
 ): ModuleConfigRecord | null {
     const rawData = db.prepare(`
@@ -66,7 +66,7 @@ function getModuleConfigRecordSync(
  * @returns ModuleConfigRecord | null.
  */
 export function getModuleConfigRecord(
-    serverId: number,
+    serverId: string,
     moduleId: number
 ): Promise<ModuleConfigRecord | null> {
     return new Promise<ModuleConfigRecord | null>((resolve, reject) => {
@@ -86,7 +86,7 @@ export function getModuleConfigRecord(
  * @returns ModuleConfigRecord[]
  */
 function getAllModuleConfigRecordsSync(
-    serverId: number,
+    serverId: string,
     enabled: boolean | null
 ): ModuleConfigRecord[] | null {
     const rawData = db.prepare(`
@@ -106,7 +106,7 @@ function getAllModuleConfigRecordsSync(
  * @returns ModuleConfigRecord[]
  */
 export function getAllModuleConfigRecords(
-    serverId: number,
+    serverId: string,
     enabled: boolean | null
 ): Promise<ModuleConfigRecord[] | null> {
     return new Promise<ModuleConfigRecord[] | null>((resolve, reject) => {
@@ -221,7 +221,7 @@ export function updateModuleConfigRecord(
  * @returns true on success
  */
 export function deleteModuleConfigRecordSync(
-    serverId: number,
+    serverId: string,
     moduleId: number
 ): boolean {
     db.prepare(`
@@ -239,7 +239,7 @@ export function deleteModuleConfigRecordSync(
  * @returns true on success
  */
 export function deleteModuleConfigRecord(
-    serverId: number,
+    serverId: string,
     moduleId: number
 ): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
