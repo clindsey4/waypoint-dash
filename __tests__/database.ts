@@ -113,7 +113,7 @@ describe('Database', () => {
             userId: "test",
             serverId: "test",
             command: "test",
-            command_id: 0,
+            commandId: 0,
             dateCreated: dateCreated
         })
         .then(response => expect(response).toEqual(true))
@@ -128,7 +128,7 @@ describe('Database', () => {
             userId: "test",
             serverId: "test",
             command: "test",
-            command_id: 0,
+            commandId: 0,
             dateCreated: dateCreated
         }))
     })
@@ -147,7 +147,7 @@ describe('Database', () => {
                 userId: "test",
                 serverId: "test",
                 command: "test",
-                command_id: 0,
+                commandId: 0,
                 dateCreated: dateCreated
             })
             await createLog({
@@ -155,7 +155,7 @@ describe('Database', () => {
                 userId: "test",
                 serverId: "test",
                 command: "test",
-                command_id: 0,
+                commandId: 0,
                 dateCreated: dateCreated
             })
             await createLog({
@@ -163,7 +163,7 @@ describe('Database', () => {
                 userId: "test",
                 serverId: "test",
                 command: "test",
-                command_id: 0,
+                commandId: 0,
                 dateCreated: dateCreated
             })
             return getLogsByDate(
@@ -177,7 +177,7 @@ describe('Database', () => {
                 userId: "test",
                 serverId: "test",
                 command: "test",
-                command_id: 0,
+                commandId: 0,
                 dateCreated: dateCreated
                 },
                 {
@@ -185,7 +185,7 @@ describe('Database', () => {
                     userId: "test",
                     serverId: "test",
                     command: "test",
-                    command_id: 0,
+                    commandId: 0,
                     dateCreated: dateCreated
                 },
                 {
@@ -193,7 +193,7 @@ describe('Database', () => {
                     userId: "test",
                     serverId: "test",
                     command: "test",
-                    command_id: 0,
+                    commandId: 0,
                     dateCreated: dateCreated
                 }
                 ] as Log[]))

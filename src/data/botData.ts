@@ -531,3 +531,138 @@ export function getLog(
         }
     })
 }
+
+/**
+ * Returns All Logs for a given date range
+ * 
+ * @param startDate
+ * @param endDate
+ * @returns Log[] | null
+ */
+function getLogsByDateSync(
+    startDate: Date,
+    endDate: Date
+): Log[] | null {
+    let parameters: string[] = []
+    let values: string[] = []
+    if (startDate !== undefined)
+    {
+        parameters.push(`date_created >= ?`)
+        values.push(startDate.toISOString())
+    }
+    if (endDate !== undefined)
+    {
+        parameters.push(`date_created <= ?`)
+        values.push(endDate.toISOString())
+    }
+    if (parameters.length == 0)
+        return null
+    const rawData = db.prepare(`
+    SELECT message_id, user_id, server_id, command, command_id, date_created
+    FROM logs
+    WHERE ${parameters.join(" AND ")}`).all([...values]) as RawLog[] | undefined
+
+    if (rawData === undefined)
+        return null
+
+    return rawData.map(rawLog => buildLog(rawLog))
+}
+
+/**
+ * Returns All Logs for a given date range
+ * 
+ * @param startDate
+ * @param endDate
+ * @returns Log[] | null
+ */
+export function getLogsByDate(
+    startDate: Date,
+    endDate: Date
+): Promise<Log[] | null> {
+    return new Promise<Log[] | null>((resolve, reject) => {
+        try {
+            resolve(getLogsByDateSync(startDate, endDate))
+        } catch (error) {
+            reject(error)   
+        }
+    })
+}
+
+/**
+ * Creates a new Log in the database
+ * 
+ * @param moduleConfigRecord 
+ * @returns true on success
+ */
+function createLogSync(
+    log: Log
+): boolean {
+    var rawData: RawLog = deconstructLog(log)
+
+    db.prepare(`
+    INSERT INTO logs (message_id, user_id, server_id, command, command_id, date_created)
+    VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+        rawData.message_id,
+        rawData.user_id,
+        rawData.server_id,
+        rawData.command,
+        rawData.command_id,
+        rawData.date_created
+    )
+
+    return true
+}
+
+/**
+ * Creates a new Log in the database
+ * 
+ * @param moduleConfigRecord 
+ * @returns true on success
+ */
+export function createLog(
+    log: Log
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(createLogSync(log))
+        } catch (error) {
+            resolve(false)
+        }
+    })
+}
+
+/**
+ * Deletes a Log in the database
+ * 
+ * @param messageId 
+ * @returns true on success
+ */
+function deleteLogSync(
+    messageId: string
+): boolean {
+    db.prepare(`
+        DELETE FROM logs
+        WHERE message_id = ?
+    `).run(messageId)
+
+    return true
+}
+
+/**
+ * Deletes a Log in the database
+ * 
+ * @param messageId 
+ * @returns true on success
+ */
+export function deleteLog(
+    messageId: string
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(deleteLogSync(messageId))
+        } catch (error) {
+            resolve(false)
+        }
+    })
+}
