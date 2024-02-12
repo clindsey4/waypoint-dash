@@ -7,6 +7,22 @@ export enum Pragma {
     DEFAULT
 }
 
+// module_config types
+export interface RawModuleConfigRecord {
+    server_id: number,
+    module_id: number,
+    module_config: string,
+    enabled: number
+}
+
+export interface ModuleConfigRecord {
+    serverId: number,
+    moduleId: number,
+    moduleConfig: any,
+    enabled: boolean
+}
+
+
 // session types
 export interface Session {
     id: string,
