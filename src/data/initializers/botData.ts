@@ -26,7 +26,13 @@ export default function init(
     )`).run()
 
     // create logs table
-    // [PK][STR] message_id | [STR] user_id | [STR] server_id | [STR] command | [DATE] created | [INT] command_id
-    // TODO
-
+    // [PK][STR] message_id | [STR] user_id | [STR] server_id | [STR] command | [INT] command_id | [DATE] dateCreated
+    database.prepare(`CREATE TABLE IF NOT EXISTS logs (
+        message_id TEXT PRIMARY KEY NOT NULL,
+        user_id TEXT NOT NULL,
+        server_id TEXT NOT NULL,
+        command TEXT NOT NULL,
+        command_id INTEGER NOT NULL,
+        date_created TEXT NOT NULL
+    )`).run()
 }

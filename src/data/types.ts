@@ -37,3 +37,22 @@ export interface DatabaseSession {
     refresh_token: string,
     expires: string
 }
+
+// logs types
+export interface RawLog {
+    message_id: string,
+    user_id: string,
+    server_id: string,
+    command: string,
+    command_id: number,
+    date_created: string
+}
+
+export interface Log {
+    messageId: string,
+    userId: string,
+    serverId: string,
+    command: string,
+    commandId: number,
+    dateCreated: Date
+}
