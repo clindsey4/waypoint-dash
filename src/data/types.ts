@@ -43,7 +43,8 @@ export interface RawLog {
     message_id: string,
     user_id: string,
     server_id: string,
-    command: number,
+    command: string,
+    command_id: number,
     date_created: string
 }
 
@@ -51,6 +52,7 @@ export interface Log {
     messageId: string,
     userId: string,
     serverId: string,
-    command: number,
+    command: string,
+    commandId: number,
     dateCreated: Date
 }

@@ -473,6 +473,7 @@ function deconstructLog(log: Log): RawLog {
         user_id: log.userId,
         server_id: log.serverId,
         command: log.command,
+        command_id: log.commandId,
         date_created: log.dateCreated.toISOString()
     } as RawLog
 }
@@ -484,13 +485,13 @@ function deconstructLog(log: Log): RawLog {
  * @returns ModuleConfigRecord
  */
 function buildLog(rawLog: RawLog): Log {
-    let dateCreated: Date = new Date(rawLog.date_created)
     return {
         messageId: rawLog.message_id,
         userId: rawLog.user_id,
         serverId: rawLog.server_id,
         command: rawLog.command,
-        dateCreated: dateCreated
+        commandId: rawLog.command_id,
+        dateCreated: new Date(rawLog.date_created)
     } as Log
 }
 
@@ -505,7 +506,7 @@ function getLogSync(
     messageId: string
 ): Log | null {
     const rawData = db.prepare(`
-    SELECT message_id, user_id, server_id, command, date_created
+    SELECT message_id, user_id, server_id, command, command_id, date_created
     FROM logs
     WHERE message_id = ?`).get(messageId) as RawLog | undefined
 
@@ -529,6 +530,50 @@ export function getLog(
             resolve(getLogSync(messageId))
         } catch (error) {
             reject(error)   
+        }
+    })
+}
+
+/**
+ * Creates a new ModuleConfigRecord in the database
+ * 
+ * @param moduleConfigRecord 
+ * @returns true on success
+ */
+function createLogSync(
+    log: Log
+): boolean {
+    var rawData: RawLog = deconstructLog(log)
+
+    db.prepare(`
+    INSERT INTO logs (message_id, user_id, server_id, command, command_id, date_created)
+    VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+        rawData.message_id,
+        rawData.user_id,
+        rawData.server_id,
+        rawData.command,
+        rawData.command_id,
+        rawData.date_created
+    )
+    
+    return true
+}
+
+/**
+ * Creates a new ModuleConfigRecord in the database
+ * 
+ * @param moduleConfigRecord 
+ * @returns true on success
+ */
+export function createLog(
+    log: Log
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(createLogSync(log))
+        } catch (error) {
+            resolve(false)
         }
     })
 }
