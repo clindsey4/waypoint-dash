@@ -1,6 +1,6 @@
 import { deleteSession, getSession, insertSession, updateSession } from "@/data/botData";
 import { Session } from "@/data/types";
-import OAuth from "discord-oauth2";
+import OAuth, { PartialGuild } from "discord-oauth2";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
@@ -109,4 +109,64 @@ export async function saveToken(
     });
 
     return session;
+}
+
+/**
+ * Takes a guild permissions string for a user and determines whether this user is an administrator or not.
+ * 
+ * @param permissions The permissions value for a guild.
+ * @returns A boolean which says if the provided permissions value is for an administrator
+ */
+export function isGuildAdministrator(
+    permissions?: string
+): boolean {
+    // bitwise AND on the permissions to see if the user is administrator
+    // https://discord.com/developers/docs/topics/permissions
+    return permissions ? (Number.parseInt(permissions) & 8) === 8 : false
+}
+
+/**
+ * Gets guilds that the user belonging to the provided access token is in.
+ * Only returns guilds where that user is an administrator.
+ * 
+ * @param accessToken An oauth access token.
+ * @returns A list of PartialGuilds
+ */
+export async function getUserGuilds(
+    accessToken: string
+): Promise<PartialGuild[]> {
+    // get the user's guilds from the API
+    const guilds = await oauth.getUserGuilds(accessToken)
+
+    // sort the guilds alphabetically
+    guilds.sort((a, b): number => a.name > b.name ? 1 : -1)
+
+    // only return guilds where the user is an administrator
+    const adminGuilds: PartialGuild[] = []
+    for (const guild of guilds) {
+        if (isGuildAdministrator(guild.permissions)) adminGuilds.push(guild)
+    }
+
+    return adminGuilds
+}
+
+/**
+ * Returns a specific guild that a user is in.
+ * 
+ * @param accessToken An oauth access token.
+ * @param guildId The guild of the ID to get.
+ * @returns A PartialGuild or null.
+ */
+export function getUserGuild(
+    accessToken: string,
+    guildId: string
+): Promise<PartialGuild | null> {
+    return oauth.getUserGuilds(accessToken, {
+        after: String(Number(guildId) - 1),
+        limit: 1
+    })
+        .then(guilds => guilds[0])
+        .then(guild => {
+            return isGuildAdministrator(guild.permissions) ? guild : null
+        })
 }
