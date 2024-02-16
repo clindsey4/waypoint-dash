@@ -22,18 +22,6 @@ export default async function Home(
   const langDict = await getDictionary(locale)
   return (
     <article className="w-full h-fit flex flex-col gap-5 justify-start items-center">
-
-      {/* User Section */}
-      {user !== null ? <section className="w-fit bg-surface-container py-2 px-2 flex items-center gap-3 rounded-full">
-        <img
-          className="rounded-full"
-          width={42}
-          height={42}
-          src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}`}
-        />
-        <h3 className="text-center text-xl text-on-surface-variant max-w-3xl mr-2">{user.username}</h3>
-      </section> : undefined}
-
       {/* Main Header Section */}
       <section className="w-full flex flex-col justify-start items-center gap-8 md:mt-28 mt-10 text-on-surface">
         <h1 className="md:text-6xl font-extrabold text-4xl text-center">{langDict.home_header_title}</h1>

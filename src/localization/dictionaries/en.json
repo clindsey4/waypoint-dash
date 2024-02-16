@@ -1,4 +1,6 @@
 {
+  "website_title": "Waypoint",
+  "nav_login": "Login with Discord",
   "home_header_title": "The All-Purpose Discord Bot",
   "home_header_description": "A fully customizable and easy-to-use Discord bot for server administration and much more.",
   "home_header_get_started": "Get Started",
