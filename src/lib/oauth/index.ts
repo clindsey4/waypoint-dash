@@ -43,7 +43,15 @@ export function getActiveSession(
             if (session === null) return resolve(null) // resolve with null if no session was found
 
             // check if sesison needs to be refreshed
-            if (refreshThreshold >= (session.expires.getTime() - new Date().getTime())) return resolve(refreshSession(session))
+            const expires = session.expires
+            const now = new Date()
+            if (now > expires) {
+                // the session can't be refreshed as it's beyond its expiration date
+                await deleteSession(session.id)
+                return resolve(null)
+            }
+            // if the session is within the refresh threshold, refresh it
+            if (refreshThreshold >= (expires.getTime() - now.getTime())) return resolve(refreshSession(session))
 
             resolve(session)
         } catch (error) {
