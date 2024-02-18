@@ -1,6 +1,8 @@
-import { createModuleConfigRecord, updateModuleConfigRecord, deleteModuleConfigRecord, getModuleConfigRecord,
-    insertSession, updateSession, deleteSession, getSession, 
-    createLog, deleteLog, getLogsByDate, getLog } from "@/data/botData";
+import {
+    createModuleConfigRecord, updateModuleConfigRecord, deleteModuleConfigRecord, getModuleConfigRecord,
+    insertSession, updateSession, deleteSession, getSession,
+    createLog, deleteLog, getLogsByDate, getLog, createApiToken, apiTokenExists, deleteApiToken
+} from "@/data/botData";
 import { Log } from "@/data/types";
 import { describe } from "node:test";
 
@@ -13,7 +15,7 @@ describe('Database', () => {
             moduleConfig: "{}",
             enabled: true
         })
-        .then(response => expect(response).toEqual(true))
+            .then(response => expect(response).toEqual(true))
     })
 
     test('can update a module_config record', async () => {
@@ -25,18 +27,18 @@ describe('Database', () => {
         })
 
         const success = await updateModuleConfigRecord({
-            serverId: "test", 
-            moduleId: 1, 
-            moduleConfig: "{}", 
+            serverId: "test",
+            moduleId: 1,
+            moduleConfig: "{}",
             enabled: false
         })
-        
+
         if (!success)
             return false
 
         return getModuleConfigRecord("test", 1)
-        .then(response => response?.enabled)
-        .then(enabled => expect(enabled).toEqual(false))
+            .then(response => response?.enabled)
+            .then(enabled => expect(enabled).toEqual(false))
     })
 
     test('can delete a module_config record', async () => {
@@ -48,7 +50,7 @@ describe('Database', () => {
         })
 
         return deleteModuleConfigRecord("test", 1)
-        .then(response => expect(response).toEqual(true))
+            .then(response => expect(response).toEqual(true))
     })
 
     // sessions
@@ -58,13 +60,13 @@ describe('Database', () => {
             refreshToken: 'thisIsARefreshToken',
             expires: new Date()
         })
-        .then(session => getSession(session.id))
-        .then(data => expect(data).toEqual({
-            id: data?.id,
-            accessToken: 'thisIsAnAccessToken',
-            refreshToken: 'thisIsARefreshToken',
-            expires: data?.expires
-        }))
+            .then(session => getSession(session.id))
+            .then(data => expect(data).toEqual({
+                id: data?.id,
+                accessToken: 'thisIsAnAccessToken',
+                refreshToken: 'thisIsARefreshToken',
+                expires: data?.expires
+            }))
     })
 
     test('can update a session', async () => {
@@ -100,13 +102,33 @@ describe('Database', () => {
             .then(data => expect(data).toBeNull())
     })
 
+    // api tokens
+    test('can create an API token', () => createApiToken().then(token => true))
+
+    test('can check if a valid API token exists', async () => createApiToken()
+        .then(token => apiTokenExists(token))
+        .then(exists => expect(exists).toBe(true))
+        .catch(_ => false)
+    )
+
+    test('can check if an invalid API token exists', async () => apiTokenExists('thisIsAFakeToken')
+        .then(exists => expect(exists).toBe(false))
+        .catch(_ => false)
+    )
+
+    test('can delete an API token', () => createApiToken()
+        .then(token => deleteApiToken(token))
+        .then(_ => true)
+        .catch(_ => false)
+    )
+
     //logs
     let dateCreated: Date = new Date()
     let startDate: Date = dateCreated
     startDate.setHours(startDate.getHours() - 1)
     let endDate: Date = dateCreated
     endDate.setHours(endDate.getHours() + 1)
-    
+
     test('can create a log', async () => {
         return createLog({
             messageId: "test",
@@ -116,31 +138,31 @@ describe('Database', () => {
             commandId: 0,
             dateCreated: dateCreated
         })
-        .then(response => expect(response).toEqual(true))
+            .then(response => expect(response).toEqual(true))
     })
 
     test('can get a log', async () => {
         return getLog(
             "test"
         )
-        .then(response => expect(response).toEqual({
-            messageId: "test",
-            userId: "test",
-            serverId: "test",
-            command: "test",
-            commandId: 0,
-            dateCreated: dateCreated
-        }))
+            .then(response => expect(response).toEqual({
+                messageId: "test",
+                userId: "test",
+                serverId: "test",
+                command: "test",
+                commandId: 0,
+                dateCreated: dateCreated
+            }))
     })
 
     test('delete a log', async () => {
         return deleteLog(
             "test"
         )
-        .then(response => expect(response).toEqual(true))
+            .then(response => expect(response).toEqual(true))
     })
 
-    test('can get logs by date', async() => {
+    test('can get logs by date', async () => {
         try {
             await createLog({
                 messageId: "test2",
@@ -170,33 +192,33 @@ describe('Database', () => {
                 startDate,
                 endDate
             )
-            .then(response => expect(response).toEqual(
-                [
-                {
-                messageId: "test2",
-                userId: "test",
-                serverId: "test",
-                command: "test",
-                commandId: 0,
-                dateCreated: dateCreated
-                },
-                {
-                    messageId: "test3",
-                    userId: "test",
-                    serverId: "test",
-                    command: "test",
-                    commandId: 0,
-                    dateCreated: dateCreated
-                },
-                {
-                    messageId: "test4",
-                    userId: "test",
-                    serverId: "test",
-                    command: "test",
-                    commandId: 0,
-                    dateCreated: dateCreated
-                }
-                ] as Log[]))
+                .then(response => expect(response).toEqual(
+                    [
+                        {
+                            messageId: "test2",
+                            userId: "test",
+                            serverId: "test",
+                            command: "test",
+                            commandId: 0,
+                            dateCreated: dateCreated
+                        },
+                        {
+                            messageId: "test3",
+                            userId: "test",
+                            serverId: "test",
+                            command: "test",
+                            commandId: 0,
+                            dateCreated: dateCreated
+                        },
+                        {
+                            messageId: "test4",
+                            userId: "test",
+                            serverId: "test",
+                            command: "test",
+                            commandId: 0,
+                            dateCreated: dateCreated
+                        }
+                    ] as Log[]))
         } finally {
             deleteLog("test2")
             deleteLog("test3")
