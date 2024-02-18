@@ -35,4 +35,10 @@ export default function init(
         command_id INTEGER NOT NULL,
         date_created TEXT NOT NULL
     )`).run()
+
+    // create API tokens table
+    // [PK][STR] token
+    database.prepare(`CREATE TABLE IF NOT EXISTS api_tokens (
+        token TEXT PRIMARY KEY NOT NULL
+    )`).run()
 }
