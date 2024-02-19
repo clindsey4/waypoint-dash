@@ -666,3 +666,101 @@ export function deleteLog(
         }
     })
 }
+
+// ------------- API TOKENS -------------
+
+/**
+ * Synchronously checks whether the provided API token exists in the database or not.
+ * 
+ * @param token The API token to check the existence of.
+ * @returns {boolean} Whether the token exists or not.
+ */
+function apiTokenExistsSync(
+    token: string
+): boolean {
+    return db.prepare(`
+    SELECT token
+    FROM api_tokens
+    WHERE token = ?
+    `).get(token) !== undefined
+}
+
+/**
+ * Asynchronously checks whether the provided API token exists in the database or not.
+ * 
+ * @param token The API token to check the existence of.
+ * @returns {Promise<boolean>} A promise that resolves with whether the token exists or not.
+ */
+export function apiTokenExists(
+    token: string
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(apiTokenExistsSync(token))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously generates a new API token and stores it in the database.
+ * 
+ * @returns {string} The new API token
+ */
+function createApiTokenSync(): string {
+    const token = generateSessionToken()
+
+    db.prepare(`
+    INSERT INTO api_tokens (token)
+    VALUES (?)
+    `).run(token)
+
+    return token
+}
+
+/**
+ * Asynchronously generates a new API token and stores it in the database.
+ * 
+ * @returns {Promise<string>} A promise that resolves with the new API token
+ */
+export function createApiToken(): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        try {
+            resolve(createApiTokenSync())
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously deletes an API token from the database.
+ * 
+ * @param token The API token to delete.
+ */
+function deleteApiTokenSync(
+    token: string
+): void {
+    db.prepare(`
+    DELETE FROM api_tokens
+    WHERE token = ?
+    `).run(token)
+}
+
+/**
+ * Asynchronously deletes an API token from the database.
+ * 
+ * @param token The API token to delete.
+ */
+export function deleteApiToken(
+    token: string
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        try {
+            resolve(deleteApiTokenSync(token))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
