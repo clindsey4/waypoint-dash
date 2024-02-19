@@ -1,8 +1,7 @@
-import { redirect } from "next/navigation";
-import { NextRequest } from "next/server";
 import { getActiveSession, oauth, saveToken } from "@/lib/oauth";
 import { cookies } from "next/headers";
-import { insertSession } from "@/data/botData";
+import { redirect } from "next/navigation";
+import { NextRequest } from "next/server";
 
 export async function GET(
     request: NextRequest
